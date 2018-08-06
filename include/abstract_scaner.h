@@ -10,9 +10,13 @@
 #ifndef ABSTRACT_SCANER_H
 #define ABSTRACT_SCANER_H
 #   include <cstddef>
+#   include <string>
+#   include <memory>
 #   include "../include/position.h"
 #   include "../include/location.h"
 #   include "../include/errors_and_tries.h"
+#   include "../include/error_count.h"
+#   include "../include/char_trie.h"
 namespace ascaner{
     template<typename Lexeme_type>
     struct Token{
@@ -29,76 +33,71 @@ namespace ascaner{
         virtual ~Abstract_scaner<Lexeme_type>()              = default;
 
         /*  Function back() return the current lexem into the input stream. */
-        void back();
+        void                back();
 
         /* Function current_lexeme() returns information about current lexem,
          * i.e. returns a lexeme code and a lexeme value. */
         virtual Token<Lexeme_type> current_lexeme() = 0;
-//         Position_range      lexeme_pos() const;
-//
-//         char32_t*           lexeme_begin_ptr() const;
-    protected:
-    int                          state_; /* the current state of the current automaton */
-    Location_ptr                 loc_;
-    char32_t*                    lexeme_begin_; /* pointer to the lexem begin */
-    char32_t                     ch_;           /* current character */
 
-//     /* set of categories for the current character */
-//     uint64_t                     char_categories;
-//
-//     /* intermediate value of the lexem information */
-//     Lexem_type                   token;
-//
-//     /* the line number at which the current lexem starts */
-//     size_t                       lexem_begin_line;
-//
-//     /* a pointer to a class that counts the number of errors: */
-//     std::shared_ptr<Error_count> en;
-//     /* a pointer to the prefix tree for identifiers: */
-//     std::shared_ptr<Char_trie>   ids;
-//     /* a pointer to the prefix tree for string literals: */
-//     std::shared_ptr<Char_trie>   strs;
-//
-//     /* buffer for writing the processed identifier or string: */
-//     std::u32string               buffer;
+        Position_range      lexeme_pos()       const;
+        char32_t*           lexeme_begin_ptr() const;
+    protected:
+        int                          state_; //< the current state of the current automaton
+        Location_ptr                 loc_;
+        char32_t*                    lexeme_begin_; /* pointer to the lexem begin */
+        char32_t                     ch_;           /* current character */
+
+        /* set of categories for the current character */
+        uint64_t                     char_categories_;
+
+        /* intermediate value of the lexem information */
+        Token<Lexeme_type>           token_;
+
+        Position_range               lexeme_pos_;
+
+        /* a pointer to a class that counts the number of errors: */
+        std::shared_ptr<Error_count> en_;
+        /* a pointer to the prefix tree for identifiers: */
+        std::shared_ptr<Char_trie>   ids_;
+        /* a pointer to the prefix tree for string literals: */
+        std::shared_ptr<Char_trie>   strs_;
+
+        /* buffer for writing the processed identifier or string: */
+        std::u32string               buffer_;
     };
+
+    template<typename Lexem_type>
+    Abstract_scaner<Lexem_type>::Abstract_scaner(const Location_ptr&     location,
+                                                 const Errors_and_tries& et)
+    {
+        ids_                     = et.ids_trie_;
+        strs_                    = et.strs_trie_;
+        en_                      = et.ec_;
+        loc_                     = location;
+        lexeme_begin_            = location->pcurrent_char_;
+        token_.range_.begin_pos_ = Position();
+        token_.range_.end_pos_   = Position();
+        lexeme_pos_.begin_pos_   = Position();
+        lexeme_pos_.end_pos_     = Position();
+    }
+
+    template<typename Lexeme_type>
+    char32_t* Abstract_scaner<Lexeme_type>::lexeme_begin_ptr() const
+    {
+        return lexeme_begin_;
+    }
+
+    template<typename Lexeme_type>
+    Position_range Abstract_scaner<Lexeme_type>::lexeme_pos() const
+    {
+        return lexeme_pos_;
+    }
+
+    template<typename Lexeme_type>
+    void Abstract_scaner<Lexeme_type>::back()
+    {
+        loc_->pcurrent_char_ = lexeme_begin_;
+        loc_->pos_           = lexeme_pos_.begin_pos_;
+    }
 };
-// #include <string>
-// #include <memory>
-// #include "../include/error_count.h"
-// #include "../include/trie.h"
-// #include "../include/char_trie.h"
-// protected:
-// };
-//
-// template<typename Lexem_type>
-// Abstract_scaner<Lexem_type>::Abstract_scaner(const Location_ptr& location,
-//                                              const Errors_and_tries& et)
-// {
-//     ids              = et.ids_trie;
-//     strs             = et.strs_trie;
-//     en               = et.ec;
-//     loc              = location;
-//     lexem_begin      = location->pcurrent_char;
-//     lexem_begin_line = 1;
-// }
-//
-// template<typename Lexem_type>
-// void Abstract_scaner<Lexem_type>::back()
-// {
-//     loc->pcurrent_char = lexem_begin;
-//     loc->current_line  = lexem_begin_line;
-// }
-//
-// template<typename Lexem_type>
-// size_t Abstract_scaner<Lexem_type>::lexem_begin_line_number() const
-// {
-//     return lexem_begin_line;
-// }
-//
-// template<typename Lexem_type>
-// char32_t* Abstract_scaner<Lexem_type>::lexem_begin_ptr() const
-// {
-//     return lexem_begin;
-// }
 #endif
