@@ -26,11 +26,11 @@ enum class Aux_expr_lexem_code : uint16_t{
 };
 
 struct Aux_expr_lexem_info{
-    Aux_expr_lexem_code code;
+    Aux_expr_lexem_code code_;
     union{
-        size_t   action_name_index;
-        size_t   regexp_name_index;
-        char32_t c;
+        size_t   action_name_index_;
+        size_t   regexp_name_index_;
+        char32_t c_;
     };
 };
 #endif
