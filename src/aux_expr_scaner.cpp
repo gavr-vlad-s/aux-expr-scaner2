@@ -181,6 +181,7 @@ ascaner::Token<Aux_expr_lexem_info> Aux_expr_scaner::current_lexeme()
              * was made. Therefore, in order to not miss the first character of the next
              * lexeme, you need to decrease the pcurrent_char pointer by one. */
             (loc_->pcurrent_char_)--;
+            token_.range_ = lexeme_pos_;
             Aux_expr_lexem_code lc = token_.lexeme_.code_;
             if(Aux_expr_lexem_code::Action == lc){
                 /* If the current lexeme is an identifier, then this identifier must be
@@ -210,7 +211,12 @@ ascaner::Token<Aux_expr_lexem_info> Aux_expr_scaner::current_lexeme()
 
 bool Aux_expr_scaner::unknown_proc()
 {
-    return belongs(Category::Other, char_categories_);
+    bool t =  belongs(Category::Other, char_categories_);
+    if(t){
+        lexeme_pos_.end_pos_.line_pos_++;
+        (loc_->pos_.line_pos_)++;
+    }
+    return
 }
 
 /* This array consists of pairs of the form (state, character) and is used to initialize
@@ -226,8 +232,8 @@ static const State_for_char init_table_for_classes[] = {
     {54, U'n'}, {63, U'o'}, {72, U'r'}, {81, U'x'}
 };
 
-// static const char* expects_LRbdlnorx =
-//     "The line %zu expects one of the following characters: L, R, b, d, l, n, o, r, x.\n";
+static const char* expects_LRbdlnorx =
+    "The line %zu expects one of the following characters: L, R, b, d, l, n, o, r, x.\n";
 
 static const char* latin_letter_expected =
     "A Latin letter or an underscore is expected at the line %zu.\n";
@@ -272,16 +278,18 @@ bool Aux_expr_scaner::classes_proc()
     return t;
 }
 
-// bool Aux_expr_scaner::char_proc()
-// {
-//     if(belongs(Category::After_backslash, char_categories)){
-//         token.c = (U'n' == ch) ? U'\n' : ch;
-//         (loc->pcurrent_char)++;
-//     }else{
-//         token.c = U'\\';
-//     }
-//     return false;
-// }
+bool Aux_expr_scaner::char_proc()
+{
+    if(belongs(Category::After_backslash, char_categories_)){
+        token_.lexeme_.c_ = (U'n' == ch_) ? U'\n' : ch_;
+        (loc_->pcurrent_char_)++;
+        lexeme_pos_.end_pos_.line_pos_++;
+        (loc_->pos_.line_pos_)++;
+    }else{
+        token_.lexeme_.c_ = U'\\';
+    }
+    return false;
+}
 
 bool Aux_expr_scaner::delimiter_proc()
 {
@@ -340,37 +348,41 @@ bool Aux_expr_scaner::action_proc()
     return t;
 }
 
-// bool Aux_expr_scaner::regexp_name_proc()
-// {
-//     bool t = true;
-//     /* The variable t is true if the regexp name has not yet
-//      * been fully read, and false otherwise. */
-//     if(-1 == state){
-//         if(belongs(Category::Regexp_name_begin, char_categories)){
-//             buffer += ch; state = 0;
-//         }else{
-//             printf(latin_letter_expected, loc->current_line);
-//             en -> increment_number_of_errors();
-//             t = false;
-//         }
-//         return t;
-//     }
-//     t = belongs(Category::Regexp_name_body, char_categories);
-//     if(t){
-//         buffer += ch;
-//     }
-//     return t;
-// }
-//
-// bool Aux_expr_scaner::hat_proc()
-// {
-//     bool t = false;
-//     if(ch == U']'){
-//         token.code = Aux_expr_lexem_code::End_char_class_complement;
-//         (loc->pcurrent_char)++;
-//     }
-//     return t;
-// }
+bool Aux_expr_scaner::regexp_name_proc()
+{
+    bool t = true;
+    /* The variable t is true if the regexp name has not yet
+     * been fully read, and false otherwise. */
+    if(-1 == state_){
+        if(belongs(Category::Regexp_name_begin, char_categories_)){
+            buffer_ += ch_; state_ = 0;
+        }else{
+            printf(latin_letter_expected, loc_->pos_.line_no_);
+            en_ -> increment_number_of_errors();
+            t = false;
+        }
+        return t;
+    }
+    t = belongs(Category::Regexp_name_body, char_categories_);
+    if(t){
+        buffer_ += ch_;
+        lexeme_pos_.end_pos_.line_pos_++;
+        (loc_->pos_.line_pos_)++;
+    }
+    return t;
+}
+
+bool Aux_expr_scaner::hat_proc()
+{
+    bool t = false;
+    if(ch_ == U']'){
+        token_.lexeme_.code_ = Aux_expr_lexem_code::End_char_class_complement;
+        (loc_->pcurrent_char_)++;
+        lexeme_pos_.end_pos_.line_pos_++;
+        (loc_->pos_.line_pos_)++;
+    }
+    return t;
+}
 
 void Aux_expr_scaner::none_final_proc()
 {
@@ -392,13 +404,13 @@ void Aux_expr_scaner::action_final_proc()
     token_.lexeme_.action_name_index_ = ids_ -> insert(buffer_);
 }
 
-// void Aux_expr_scaner::regexp_name_final_proc()
-// {
-//     /* This function will be called if, after reading the input stream, they were
-//      * in the action names processing automaton, the A_action automaton. Then this
-//      * name should be written in the prefix tree of identifiers. */
-//     token.regexp_name_index = ids -> insert(buffer);
-// }
+void Aux_expr_scaner::regexp_name_final_proc()
+{
+    /* This function will be called if, after reading the input stream, they were
+     * in the action names processing automaton, the A_action automaton. Then this
+     * name should be written in the prefix tree of identifiers. */
+    token_.lexeme_.regexp_name_index_ = ids_ -> insert(buffer_);
+}
 
 void Aux_expr_scaner::delimiter_final_proc()
 {
@@ -420,13 +432,13 @@ void Aux_expr_scaner::classes_final_proc()
     }
 }
 
-// void Aux_expr_scaner::char_final_proc()
-// {
-//     token.c = U'\\';
-// }
-//
-// void Aux_expr_scaner::hat_final_proc()
-// {
-//     token.code = Aux_expr_lexem_code::Character;
-//     token.c    = U'^';
-// }
+void Aux_expr_scaner::char_final_proc()
+{
+    token_.lexeme_.c_ = U'\\';
+}
+
+void Aux_expr_scaner::hat_final_proc()
+{
+    token_.lexeme_.code_ = Aux_expr_lexem_code::Character;
+    token_.lexeme_.c_    = U'^';
+}
