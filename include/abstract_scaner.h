@@ -42,6 +42,10 @@ namespace ascaner{
 
         Position_range      lexeme_pos()       const;
         char32_t*           lexeme_begin_ptr() const;
+
+        virtual std::string lexeme_to_string(const Lexeme_type li) = 0;
+
+        std::string token_to_string(const Token<Lexeme_type>& tok);
     protected:
         int                          state_; //< the current state of the current automaton
         Location_ptr                 loc_;
@@ -99,6 +103,13 @@ namespace ascaner{
     {
         loc_->pcurrent_char_ = lexeme_begin_;
         loc_->pos_           = lexeme_pos_.begin_pos_;
+    }
+
+    template<typename Lexeme_type>
+    std::string Abstract_scaner<Lexeme_type>::token_to_string(const Token<Lexeme_type>& tok)
+    {
+        std::string result;
+        return result;
     }
 };
 #endif

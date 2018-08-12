@@ -90,7 +90,7 @@ bool Aux_expr_scaner::start_proc()
     state_  = -1;
     /* For an automaton that processes a lexeme, the state with the number (-1)
      * is the state in which this machine is initialized. */
-    if(belongs(Category::Spaces, char_categories)){
+    if(belongs(Category::Spaces, char_categories_)){
         if(ch_ == U'\n'){
             loc_->pos_.line_pos_ = 1;
             (loc_->pos_.line_no_)++;
@@ -187,7 +187,7 @@ ascaner::Token<Aux_expr_lexem_info> Aux_expr_scaner::current_lexeme()
                 /* If the current lexeme is an identifier, then this identifier must be
                  * written to the identifier table. */
                 token_.lexeme_.action_name_index_ = ids_ -> insert(buffer_);
-            }else if(A_class == automaton){
+            }else if(A_class == automaton_){
                 /* If you have finished processing the class of characters, you need to
                  * adjust its code, and, possibly, output diagnostics. */
                 correct_class();
@@ -216,7 +216,7 @@ bool Aux_expr_scaner::unknown_proc()
         lexeme_pos_.end_pos_.line_pos_++;
         (loc_->pos_.line_pos_)++;
     }
-    return
+    return t;
 }
 
 /* This array consists of pairs of the form (state, character) and is used to initialize
@@ -247,7 +247,7 @@ bool Aux_expr_scaner::classes_proc()
                 state_ = -2; t = true;
                 lexeme_pos_.end_pos_.line_pos_++;
                 (loc_->pos_.line_pos_)++;
-            }else if(U'^' == ch){
+            }else if(U'^' == ch_){
                 token_.lexeme_.code_ = Aux_expr_lexem_code::Begin_char_class_complement;
                 (loc_->pcurrent_char_)++;
                 lexeme_pos_.end_pos_.line_pos_++;
@@ -258,7 +258,7 @@ bool Aux_expr_scaner::classes_proc()
             if(belongs(Category::After_colon, char_categories_)){
                 state_               = get_init_state(ch_, init_table_for_classes,
                                                       size(init_table_for_classes));
-                token_.lexeme_.code_ = a_classes_jump_table[state].code;
+                token_.lexeme_.code_ = a_classes_jump_table[state_].code;
                 t = true;
             }else{
                 printf(expects_LRbdlnorx, loc_->pos_.line_no_);
@@ -266,7 +266,7 @@ bool Aux_expr_scaner::classes_proc()
             }
             break;
         default:
-            auto elem            = a_classes_jump_table[state];
+            auto elem            = a_classes_jump_table[state_];
             token_.lexeme_.code_ = elem.code;
             int y                = search_char(ch_, elem.symbols);
             if(y != THERE_IS_NO_CHAR){
@@ -427,7 +427,7 @@ void Aux_expr_scaner::classes_final_proc()
             token_.lexeme_.code_ = Aux_expr_lexem_code::UnknownLexem;
             break;
         default:
-            token_.lexeme_.code_ = a_classes_jump_table[state].code;
+            token_.lexeme_.code_ = a_classes_jump_table[state_].code;
             correct_class();
     }
 }

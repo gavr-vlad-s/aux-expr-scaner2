@@ -17,7 +17,7 @@ void Error_count::increment_number_of_errors()
 
 size_t Error_count::get_number_of_errors() const
 {
-    return number_of_errors;
+    return number_of_errors_;
 }
 
 void Error_count::print() const

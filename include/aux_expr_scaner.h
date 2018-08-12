@@ -20,7 +20,7 @@
 class Aux_expr_scaner : public ascaner::Abstract_scaner<Aux_expr_lexem_info>{
 public:
     Aux_expr_scaner()                            = default;
-    Aux_expr_scaner(const Location_ptr& location, const Errors_and_tries& et) :
+    Aux_expr_scaner(const ascaner::Location_ptr& location, const Errors_and_tries& et) :
         ascaner::Abstract_scaner<Aux_expr_lexem_info>(location, et) {};
     Aux_expr_scaner(const Aux_expr_scaner& orig) = default;
     virtual ~Aux_expr_scaner()                   = default;
