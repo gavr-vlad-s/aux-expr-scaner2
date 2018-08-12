@@ -25,6 +25,7 @@ public:
     Aux_expr_scaner(const Aux_expr_scaner& orig) = default;
     virtual ~Aux_expr_scaner()                   = default;
     virtual ascaner::Token<Aux_expr_lexem_info> current_lexeme();
+    std::string lexeme_to_string(const Aux_expr_lexem_info li) override;
 private:
     enum Automaton_name{
         A_start,     A_unknown,    A_action,

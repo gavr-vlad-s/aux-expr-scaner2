@@ -109,6 +109,16 @@ namespace ascaner{
     std::string Abstract_scaner<Lexeme_type>::token_to_string(const Token<Lexeme_type>& tok)
     {
         std::string result;
+        auto&       p      = tok.range_;
+        auto&       b      = p.begin_pos_;
+        auto&       e      = p.end_pos_;
+        result             = "[line: " + std::to_string(b.line_no_)  +
+                             ", pos: " + std::to_string(b.line_pos_) + "]";
+        if(b.line_no_ != e.line_no_){
+            result += "--[line: " + std::to_string(e.line_no_)  +
+                      ", pos: "   + std::to_string(e.line_pos_) + "]";
+        }
+        result += " lexeme: " + lexeme_to_string(tok.lexeme_);
         return result;
     }
 };

@@ -18,8 +18,7 @@
 #include "../include/get_init_state.h"
 #include "../include/elem.h"
 #include "../include/aux_expr_scaner_classes_table.h"
-// #include <cstdlib>
-// #include <utility>
+#include "../include/print_char32.h"
 
 template <class T, std::size_t N>
 constexpr size_t size(const T (&array)[N]) noexcept
@@ -441,4 +440,34 @@ void Aux_expr_scaner::hat_final_proc()
 {
     token_.lexeme_.code_ = Aux_expr_lexem_code::Character;
     token_.lexeme_.c_    = U'^';
+}
+
+/* Данный массив состоит из строковых литералов, представляющих собой заключённые
+ * в кавычки идентификаторы из перечисления Lexem_code. Строки идут в том же
+ * порядке, что и соответствующие идентификаторы перечисления Lexem_code. */
+static const char* lexem_names[] = {
+    "Nothing",                     "UnknownLexem",              "Action",
+    "Opened_round_brack",          "Closed_round_brack",        "Or",
+    "Kleene_closure",              "Positive_closure",          "Optional_member",
+    "Character",                   "Begin_expression",          "End_expression",
+    "Class_Latin",                 "Class_Letter",              "Class_Russian",
+    "Class_bdigits",               "Class_digits",              "Class_latin",
+    "Class_letter",                "Class_odigits",             "Class_russian",
+    "Class_xdigits",               "Class_ndq",                 "Class_nsq",
+    "Begin_char_class_complement", "End_char_class_complement", "M_Class_Latin",
+    "M_Class_Letter",              "M_Class_Russian",           "M_Class_bdigits",
+    "M_Class_digits",              "M_Class_latin",             "M_Class_letter",
+    "M_Class_odigits",             "M_Class_russian",           "M_Class_xdigits",
+    "M_Class_ndq",                 "M_Class_nsq"
+};
+
+std::string Aux_expr_scaner::lexeme_to_string(const Aux_expr_lexem_info li)
+{
+    std::string         result;
+    Aux_expr_lexem_code lc    = li.code_;
+    result                    = lexem_names[static_cast<uint16_t>(lc)];
+    if(Aux_expr_lexem_code::Character == lc){
+        result += " " + show_char32(li.c_);
+    }
+    return result;
 }
