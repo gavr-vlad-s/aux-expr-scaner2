@@ -10,6 +10,7 @@
 #ifndef ABSTRACT_SCANER_H
 #define ABSTRACT_SCANER_H
 #   include <cstddef>
+#   include <cstdint>
 #   include <string>
 #   include <memory>
 #   include "../include/position.h"
