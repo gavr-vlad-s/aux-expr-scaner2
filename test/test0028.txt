@@ -1,0 +1,1 @@
+{0(x|X)[:xdigits:]$add_hex_digit_to_char_code('?[:xdigits:]$add_hex_digit_to_char_code)*}

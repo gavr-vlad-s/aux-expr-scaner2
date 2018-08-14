@@ -1,0 +1,1 @@
+{\$(%decimal_code|%octal_code|%binary_code|%hex_code)$write_by_code}

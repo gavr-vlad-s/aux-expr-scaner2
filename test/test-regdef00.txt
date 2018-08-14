@@ -1,0 +1,21 @@
+%strings "buffer.clear();" : "token.code = (buffer.length() == 1) ? Char : String;"
+
+%action write_by_code              "buffer += char_code;"
+%action add_dec_digit_to_char_code "char_code = char_code * 10 + digit2int(ch);"
+%action add_oct_digit_to_char_code "char_code = char_code * 8 + digit2int(ch);"
+%action add_bin_digit_to_char_code "char_code = char_code * 2 + digit2int(ch);"
+%action add_hex_digit_to_char_code "char_code = char_code * 16 + digit2int(ch);"
+
+decimal_code  -> {[:digits:]$add_dec_digit_to_char_code('?[:digits:]$add_dec_digit_to_char_code)*}
+
+octal_code    -> {0o[:odigits:]$add_oct_digit_to_char_code('?[:odigits:]$add_oct_digit_to_char_code)*}
+
+binary_code   -> {0(b|B)[:bdigits:]$add_bin_digit_to_char_code('?[:bdigits:]$add_bin_digit_to_char_code)*}
+
+hex_code      -> {0(x|X)[:xdigits:]$add_hex_digit_to_char_code('?[:xdigits:]$add_hex_digit_to_char_code)*}
+
+char_by_code  -> {\$(%decimal_code|%octal_code|%binary_code|%hex_code)$write_by_code}
+
+quoted_string -> {"([:ndq:]$write|""$write)*"}
+
+full_string   -> {%char_by_code*((%quoted_string%char_by_code+)*|%quoted_string)}
